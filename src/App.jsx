@@ -9,6 +9,7 @@ import Contracts from "./pages/Contracts"
 import Billing from "./pages/Billing"
 import Notifications from "./pages/Notifications"
 import Reports from "./pages/Reports"
+import Insights from "./pages/Insights"
 
 export default function App() {
   const [navOpen, setNavOpen] = useState(false)
@@ -31,13 +32,20 @@ export default function App() {
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <span className="font-bold text-blue-600 text-lg">rentflow</span>
+          <span className="grid place-items-center w-7 h-7 rounded-lg bg-blue-600 text-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 11l9-7 9 7" />
+              <path d="M5 10v10h14V10" />
+            </svg>
+          </span>
+          <span className="font-bold text-gray-900 text-lg tracking-tight">rentflow</span>
         </header>
 
         <main className="md:ml-64 p-4 md:p-6">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/insights" element={<Insights />} />
             <Route path="/properties" element={<Properties />} />
             <Route path="/tenants" element={<Tenants />} />
             <Route path="/contracts" element={<Contracts />} />
