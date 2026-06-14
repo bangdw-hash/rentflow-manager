@@ -84,8 +84,8 @@ export default function Tenants() {
       ) : list.length === 0 ? (
         <p className="text-gray-400 text-sm">등록된 임차인이 없습니다.</p>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+          <table className="w-full text-sm min-w-[520px]">
             <thead><tr className="text-gray-400 border-b bg-gray-50"><th className="text-left px-4 py-2">이름</th><th className="text-left">연락처</th><th className="text-left">매물</th><th className="text-left">계약기간</th></tr></thead>
             <tbody>
               {list.map(t => {
