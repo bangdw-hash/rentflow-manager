@@ -3,7 +3,9 @@ import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { sendBillingNotice, sendExpiryNotice, sendOverdueNotice } from '../lib/kakao'
 import { formatDate, getDday } from '../utils/formatters'
+import { usePlan } from '../lib/PlanContext'
 import Modal from '../components/common/Modal'
+import UpgradeModal from '../components/common/UpgradeModal'
 import { PageHeader, Card, Button, Field, EmptyState, Pill, inputClass } from '../components/common/ui'
 
 const TYPE_OPTIONS = [
@@ -24,6 +26,17 @@ export default function Notifications() {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ tenant_id: '', notif_type: 'billing', month: new Date().getMonth() + 1, amount: 0, dueDate: '' })
   const [sending, setSending] = useState(false)
+  const [upgrade, setUpgrade] = useState(false)
+  const { limits } = usePlan()
+
+  // 이번 달 발송 건수
+  const monthSent = (() => {
+    const now = new Date()
+    return logs.filter((l) => {
+      const d = new Date(l.created_at)
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+    }).length
+  })()
 
   useEffect(() => { fetchAll() }, [])
 
@@ -55,6 +68,7 @@ export default function Notifications() {
 
   async function handleSend() {
     if (!selectedTenant) { toast.error('임차인을 선택하세요.'); return }
+    if (limits.kakao !== Infinity && monthSent >= limits.kakao) { setOpen(false); setUpgrade(true); return }
     setSending(true)
     const { name, phone, contracts } = selectedTenant
     let res
@@ -77,9 +91,11 @@ export default function Notifications() {
     <div>
       <PageHeader
         title="알림 관리"
-        subtitle="관리비·만료·미납 안내를 카카오로 발송하고 이력을 관리합니다."
+        subtitle={limits.kakao === Infinity ? '관리비·만료·미납 안내를 카카오로 발송하고 이력을 관리합니다.' : `Free 플랜 · 이번 달 ${monthSent}/${limits.kakao}건 발송`}
         action={<Button onClick={() => setOpen(true)}>+ 알림 발송</Button>}
       />
+
+      <UpgradeModal open={upgrade} onClose={() => setUpgrade(false)} feature="월 카카오 알림" limit={limits.kakao} />
 
       <Card>
         <h2 className="font-semibold text-gray-900 px-5 py-4 border-b border-gray-100">발송 이력</h2>

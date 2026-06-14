@@ -5,7 +5,9 @@ import { supabase } from '../lib/supabase'
 import { scanContract } from '../lib/ocr'
 import { formatDate } from '../utils/formatters'
 import { downloadXlsxTemplate, parseSheet, cellStr } from '../lib/bulkImport'
+import { usePlan } from '../lib/PlanContext'
 import Modal from '../components/common/Modal'
+import UpgradeModal from '../components/common/UpgradeModal'
 import { PageHeader, Card, Button, Field, EmptyState, IconBtn, EditIcon, TrashIcon, inputClass } from '../components/common/ui'
 
 const TEMPLATE_HEADERS = ['이름', '연락처', '주민번호', '이메일', '배정매물명(선택)']
@@ -19,8 +21,12 @@ export default function Tenants() {
   const [editing, setEditing] = useState(null)
   const [scanning, setScanning] = useState(false)
   const [ocrResult, setOcrResult] = useState(null)
+  const [upgrade, setUpgrade] = useState(false)
   const fileRef = useRef(null)
+  const { limits } = usePlan()
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm()
+
+  const atLimit = limits.tenants !== Infinity && list.length >= limits.tenants
 
   useEffect(() => { fetchAll() }, [])
 
@@ -37,6 +43,7 @@ export default function Tenants() {
   }
 
   function openCreate() {
+    if (atLimit) { setUpgrade(true); return }
     setEditing(null); setOcrResult(null)
     reset({ name: '', phone: '', id_number: '', email: '', property_id: '' })
     setOpen(true)
@@ -131,6 +138,14 @@ export default function Tenants() {
         })
       }
       if (!toInsert.length) { toast.error(`등록할 신규 임차인이 없습니다 (중복/누락 ${skipped}건).`, { id: t }); return }
+      if (limits.tenants !== Infinity) {
+        const remaining = Math.max(0, limits.tenants - (existing?.length || 0))
+        if (remaining <= 0) { toast.dismiss(t); setUpgrade(true); return }
+        if (toInsert.length > remaining) {
+          toast(`Free 플랜 한도로 ${remaining}건만 등록합니다.`, { id: t, icon: 'ℹ️' })
+          toInsert.length = remaining
+        }
+      }
       const { error } = await supabase.from('tenants').insert(toInsert)
       if (error) throw error
       toast.success(`${toInsert.length}건 등록 완료${skipped ? `, ${skipped}건 건너뜀` : ''}.`, { id: t })
@@ -146,7 +161,7 @@ export default function Tenants() {
     <div>
       <PageHeader
         title="임차인 관리"
-        subtitle="개별/일괄 등록, 계약서 OCR, 이메일(전자계산서용)을 관리합니다."
+        subtitle={limits.tenants === Infinity ? '개별/일괄 등록, 계약서 OCR, 이메일(전자계산서용)을 관리합니다.' : `Free 플랜 · ${list.length}/${limits.tenants}명 사용 중`}
         action={
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" size="sm" onClick={downloadTemplate}>양식 다운로드</Button>
@@ -156,6 +171,8 @@ export default function Tenants() {
           </div>
         }
       />
+
+      <UpgradeModal open={upgrade} onClose={() => setUpgrade(false)} feature="임차인" limit={limits.tenants} />
 
       {loading ? (
         <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-14 bg-gray-100 rounded-2xl animate-pulse" />)}</div>
