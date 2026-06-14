@@ -10,6 +10,7 @@ import Billing from "./pages/Billing"
 import Notifications from "./pages/Notifications"
 import Reports from "./pages/Reports"
 import Insights from "./pages/Insights"
+import Payments from "./pages/Payments"
 
 export default function App() {
   const [navOpen, setNavOpen] = useState(false)
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="/properties" element={<Properties />} />
             <Route path="/tenants" element={<Tenants />} />
             <Route path="/contracts" element={<Contracts />} />
+            <Route path="/payments" element={<Payments />} />
             <Route path="/billing" element={<Billing />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/reports" element={<Reports />} />
