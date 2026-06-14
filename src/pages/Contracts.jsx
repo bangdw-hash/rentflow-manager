@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
+import { scanContract } from '../lib/ocr'
 import { formatMoney, formatDate } from '../utils/formatters'
 import Modal from '../components/common/Modal'
 import { PageHeader, Card, Button, Field, EmptyState, Pill, IconBtn, EditIcon, TrashIcon, inputClass } from '../components/common/ui'
@@ -20,7 +21,28 @@ export default function Contracts() {
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [file, setFile] = useState(null)
-  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm()
+  const [scanning, setScanning] = useState(false)
+  const { register, handleSubmit, reset, setValue, formState: { isSubmitting } } = useForm()
+
+  async function handleOcr(e) {
+    const f = e.target.files?.[0]
+    if (!f) return
+    setScanning(true)
+    try {
+      const parsed = await scanContract(f)
+      let n = 0
+      if (parsed.deposit) { setValue('deposit', parsed.deposit); n++ }
+      if (parsed.monthly_rent) { setValue('monthly_rent', parsed.monthly_rent); n++ }
+      if (parsed.contract_start) { setValue('contract_start', parsed.contract_start); n++ }
+      if (parsed.contract_end) { setValue('contract_end', parsed.contract_end); n++ }
+      setFile(f) // 계약서 파일로도 첨부
+      toast.success(n ? `OCR로 ${n}개 항목을 자동 입력했습니다.` : 'OCR 인식 결과가 없습니다. 직접 입력하세요.')
+    } catch (err) {
+      toast.error('OCR 분석 실패: ' + (err.message || err))
+    } finally {
+      setScanning(false)
+    }
+  }
 
   useEffect(() => { fetchAll() }, [])
 
@@ -137,6 +159,12 @@ export default function Contracts() {
 
       <Modal open={open} onClose={() => setOpen(false)} title={editing ? '계약 수정' : '신규 계약 등록'}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
+          <div className="p-3.5 bg-blue-50 rounded-xl">
+            <p className="text-sm text-blue-700 font-medium mb-2">📄 계약서 OCR 자동 입력 (선택)</p>
+            <input type="file" accept="image/*,.pdf" onChange={handleOcr} disabled={scanning} className="text-sm" />
+            {scanning && <p className="text-xs text-blue-500 mt-2">분석 중…</p>}
+            <p className="text-xs text-gray-400 mt-1.5">보증금·월세·계약기간을 자동으로 채웁니다. 결과는 확인 후 수정하세요.</p>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="임차인 *">
               <select {...register('tenant_id', { required: true })} className={inputClass}>

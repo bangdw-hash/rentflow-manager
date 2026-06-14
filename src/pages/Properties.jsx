@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { formatMoney } from '../utils/formatters'
+import { downloadXlsxTemplate, parseSheet, cellStr, cellNum } from '../lib/bulkImport'
 import Modal from '../components/common/Modal'
 import { PageHeader, Card, Button, Field, EmptyState, Pill, IconBtn, EditIcon, TrashIcon, inputClass } from '../components/common/ui'
 
@@ -13,11 +14,18 @@ const STATUS_MAP = {
 }
 const TYPE_MAP = { apartment: '주택/아파트', office: '사무실', store: '상가' }
 
+const TEMPLATE_HEADERS = ['매물명', '주소', '층', '전용면적(㎡)', '유형(apartment/office/store)', '상태(vacant/occupied/expiring)', '월세(원)', '보증금(원)', '비고']
+const TEMPLATE_EXAMPLE = ['101호', '서울시 강남구 …', '1', '29.75', 'apartment', 'vacant', '700000', '10000000', '예시행 — 삭제 후 입력']
+
+const normType = (v) => (['apartment', 'office', 'store'].includes(String(v).trim()) ? String(v).trim() : 'apartment')
+const normStatus = (v) => (['vacant', 'occupied', 'expiring'].includes(String(v).trim()) ? String(v).trim() : 'vacant')
+
 export default function Properties() {
   const [list, setList] = useState([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(null)
+  const fileRef = useRef(null)
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm()
 
   useEffect(() => { fetchList() }, [])
@@ -53,6 +61,20 @@ export default function Properties() {
       monthly_rent: v.monthly_rent ? Number(v.monthly_rent) : null,
       deposit: v.deposit ? Number(v.deposit) : null, note: v.note || null,
     }
+
+    // 신규 등록 시 중복 감지
+    if (!editing) {
+      const { data: dup } = await supabase.from('properties').select('id, name').ilike('name', v.name.trim()).limit(1)
+      if (dup && dup.length) {
+        const ok = confirm(`'${v.name}' 매물이 이미 등록되어 있습니다.\n\n[확인] 기존 항목을 이 내용으로 수정\n[취소] 중단`)
+        if (!ok) return
+        const res = await supabase.from('properties').update(payload).eq('id', dup[0].id)
+        if (res.error) { toast.error('수정 실패: ' + res.error.message); return }
+        toast.success('기존 매물을 수정했습니다.')
+        setOpen(false); fetchList(); return
+      }
+    }
+
     const res = editing
       ? await supabase.from('properties').update(payload).eq('id', editing.id)
       : await supabase.from('properties').insert(payload)
@@ -70,12 +92,64 @@ export default function Properties() {
     fetchList()
   }
 
+  function downloadTemplate() {
+    downloadXlsxTemplate('매물_일괄등록_양식.xlsx', TEMPLATE_HEADERS, [TEMPLATE_EXAMPLE])
+    toast.success('양식을 다운로드했습니다.')
+  }
+
+  async function handleBulk(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const t = toast.loading('엑셀 분석 중…')
+    try {
+      const rows = await parseSheet(file)
+      const { data: existing } = await supabase.from('properties').select('name')
+      const have = new Set((existing || []).map((p) => (p.name || '').trim()))
+      const seen = new Set()
+      let skipped = 0
+      const toInsert = []
+      for (const r of rows) {
+        const name = cellStr(r['매물명'])
+        const address = cellStr(r['주소'])
+        if (!name || !address || name === '101호') { skipped++; continue } // 예시행/누락 제외
+        if (have.has(name) || seen.has(name)) { skipped++; continue } // 중복 제외
+        seen.add(name)
+        toInsert.push({
+          name, address,
+          floor: cellStr(r['층']),
+          area_sqm: cellNum(r['전용면적(㎡)']),
+          property_type: normType(r['유형(apartment/office/store)']),
+          status: normStatus(r['상태(vacant/occupied/expiring)']),
+          monthly_rent: cellNum(r['월세(원)']),
+          deposit: cellNum(r['보증금(원)']),
+          note: cellStr(r['비고']),
+        })
+      }
+      if (!toInsert.length) { toast.error(`등록할 신규 매물이 없습니다 (중복/누락 ${skipped}건).`, { id: t }); return }
+      const { error } = await supabase.from('properties').insert(toInsert)
+      if (error) throw error
+      toast.success(`${toInsert.length}건 등록 완료${skipped ? `, ${skipped}건 건너뜀` : ''}.`, { id: t })
+      fetchList()
+    } catch (err) {
+      toast.error('업로드 실패: ' + (err.message || err), { id: t })
+    } finally {
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
   return (
     <div>
       <PageHeader
         title="매물 관리"
-        subtitle="건물·호실을 등록하고 공실/계약 상태를 관리합니다."
-        action={<Button onClick={openCreate}>+ 신규 매물</Button>}
+        subtitle="개별 등록 또는 엑셀로 일괄 업로드할 수 있습니다."
+        action={
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" size="sm" onClick={downloadTemplate}>양식 다운로드</Button>
+            <Button variant="secondary" size="sm" onClick={() => fileRef.current?.click()}>엑셀 업로드</Button>
+            <Button onClick={openCreate}>+ 신규 매물</Button>
+            <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleBulk} className="hidden" />
+          </div>
+        }
       />
 
       {loading ? (
@@ -83,13 +157,13 @@ export default function Properties() {
           {[...Array(3)].map((_, i) => <div key={i} className="h-36 bg-gray-100 rounded-2xl animate-pulse" />)}
         </div>
       ) : list.length === 0 ? (
-        <Card><EmptyState icon="🏢" title="등록된 매물이 없습니다" desc="첫 매물을 등록해 관리를 시작하세요." action={<Button onClick={openCreate}>+ 신규 매물</Button>} /></Card>
+        <Card><EmptyState icon="🏢" title="등록된 매물이 없습니다" desc="개별 등록하거나 엑셀 양식으로 일괄 업로드하세요." action={<Button onClick={openCreate}>+ 신규 매물</Button>} /></Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {list.map(p => {
             const s = STATUS_MAP[p.status] || STATUS_MAP.vacant
             return (
-              <Card key={p.id} className="p-5 group">
+              <Card key={p.id} className="p-5">
                 <div className="flex items-start justify-between mb-2">
                   <div className="min-w-0">
                     <h3 className="font-semibold text-gray-900 truncate">{p.name}</h3>
