@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom"
 
 const menu = [
   { to: "/dashboard", label: "대시보드" },
+  { to: "/insights", label: "인사이트" },
   { to: "/properties", label: "매물" },
   { to: "/tenants", label: "임차인" },
   { to: "/contracts", label: "계약" },
@@ -30,7 +31,15 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
         }
       >
         <div className="px-5 py-4 border-b flex items-center justify-between">
-          <p className="font-bold text-blue-600 text-lg">rentflow</p>
+          <div className="flex items-center gap-2">
+            <span className="grid place-items-center w-7 h-7 rounded-lg bg-blue-600 text-white shadow-sm">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 11l9-7 9 7" />
+                <path d="M5 10v10h14V10" />
+              </svg>
+            </span>
+            <p className="font-bold text-gray-900 text-lg tracking-tight">rentflow</p>
+          </div>
           <button
             className="md:hidden text-gray-400 hover:text-gray-600 text-xl leading-none"
             onClick={onClose}

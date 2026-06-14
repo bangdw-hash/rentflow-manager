@@ -1,1 +1,58 @@
 @import "tailwindcss";
+
+/* =========================================================
+   rentflow 디자인 시스템 (V2)
+   - 서체: Pretendard (한국형 모던 UI 표준)
+   - 자간/타이포 스케일/뉴트럴 팔레트 정돈
+   ========================================================= */
+
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif;
+
+  /* 브랜드 컬러 (인디고-블루 계열) */
+  --color-brand-50: #eef3ff;
+  --color-brand-100: #dbe6ff;
+  --color-brand-500: #2f6bff;
+  --color-brand-600: #1f57f0;
+  --color-brand-700: #1a47c7;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.011em;
+    color: #111827;
+    background-color: #f6f7f9;
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.022em;
+  }
+  /* 숫자(금액)는 등폭 느낌으로 정렬감 향상 */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .rf-card {
+    @apply bg-white rounded-2xl shadow-sm ring-1 ring-gray-200/70;
+  }
+  .rf-input {
+    @apply w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm bg-white
+      focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition;
+  }
+  .rf-btn-primary {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl text-sm font-semibold
+      bg-blue-600 text-white px-4 py-2.5 transition-colors hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50;
+  }
+  .rf-btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl text-sm font-semibold
+      px-3 py-2 text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50;
+  }
+}
