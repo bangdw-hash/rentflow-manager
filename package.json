@@ -1,0 +1,36 @@
+{
+  "name": "rentflow-manager",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "homepage": "https://bangdw-hash.github.io/rentflow-manager",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0",
+    "date-fns": "^3.0.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
+    "lucide-react": "^0.383.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.0.0",
+    "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^6.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^9.9.0",
+    "gh-pages": "^6.0.0",
+    "tailwindcss": "^4.0.0",
+    "vite": "^6.0.1"
+  }
+}

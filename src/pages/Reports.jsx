@@ -1,0 +1,1 @@
+export default function Reports() { return (<div><h1 className="text-2xl font-bold text-gray-800 mb-6">보고서</h1><p className="text-gray-500">준비 중</p></div>) }

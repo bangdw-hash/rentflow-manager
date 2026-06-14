@@ -1,0 +1,1 @@
+export default function Properties() { return (<div><h1 className="text-2xl font-bold text-gray-800 mb-6">매물 관리</h1><p className="text-gray-500">준비 중</p></div>) }
