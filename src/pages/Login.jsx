@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../lib/AuthContext'
 import { Button, Field, inputClass } from '../components/common/ui'
 
 export default function Login() {
+  const { enterGuest } = useAuth()
   const [mode, setMode] = useState('login') // login | signup
   const [email, setEmail] = useState('')
   const [pw, setPw] = useState('')
@@ -66,6 +68,15 @@ export default function Login() {
               className="text-blue-600 font-medium hover:underline"
             >
               {mode === 'login' ? '회원가입' : '로그인'}
+            </button>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <button
+              onClick={enterGuest}
+              className="w-full text-center text-sm text-gray-500 hover:text-gray-700"
+            >
+              로그인 없이 둘러보기 →
             </button>
           </div>
         </div>
