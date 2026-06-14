@@ -13,6 +13,7 @@ import Notifications from "./pages/Notifications"
 import Reports from "./pages/Reports"
 import Insights from "./pages/Insights"
 import Payments from "./pages/Payments"
+import Invoices from "./pages/Invoices"
 
 function Shell() {
   const [navOpen, setNavOpen] = useState(false)
@@ -47,6 +48,7 @@ function Shell() {
           <Route path="/tenants" element={<Tenants />} />
           <Route path="/contracts" element={<Contracts />} />
           <Route path="/payments" element={<Payments />} />
+          <Route path="/invoices" element={<Invoices />} />
           <Route path="/billing" element={<Billing />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/reports" element={<Reports />} />
