@@ -100,7 +100,7 @@ export default function Notifications() {
         ) : logs.length === 0 ? (
           <p className="text-gray-400 text-sm p-4">발송 이력이 없습니다.</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[560px]">
             <thead><tr className="text-gray-400 border-b bg-gray-50"><th className="text-left px-4 py-2">임차인</th><th className="text-left">유형</th><th className="text-left">채널</th><th className="text-left">발송시각</th><th className="text-left">상태</th></tr></thead>
             <tbody>
               {logs.map(l => {
@@ -116,7 +116,7 @@ export default function Notifications() {
                 )
               })}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
 
@@ -134,7 +134,7 @@ export default function Notifications() {
             </select>
           </Field>
           {form.notif_type === 'billing' && (
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Field label="월"><input type="number" value={form.month} onChange={e => setForm({ ...form, month: e.target.value })} className={inputCls} /></Field>
               <Field label="금액"><input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className={inputCls} /></Field>
               <Field label="납부기한"><input type="date" value={form.dueDate} onChange={e => setForm({ ...form, dueDate: e.target.value })} className={inputCls} /></Field>

@@ -106,7 +106,7 @@ export default function Reports() {
         {payments.length === 0 ? (
           <p className="text-gray-400 text-sm p-4">납부 이력이 없습니다.</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[560px]">
             <thead><tr className="text-gray-400 border-b bg-gray-50"><th className="text-left px-4 py-2">임차인</th><th className="text-left">유형</th><th className="text-left">금액</th><th className="text-left">납부기한</th><th className="text-left">상태</th></tr></thead>
             <tbody>
               {payments.map(p => (
@@ -119,7 +119,7 @@ export default function Reports() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
     </div>

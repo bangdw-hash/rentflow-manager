@@ -52,7 +52,7 @@ export default function Dashboard() {
       <h1 className="text-2xl font-bold text-gray-800 mb-6">대시보드</h1>
 
       {/* 매물 현황 카드 */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {[
           { label: '전체 매물', value: stats.total + '개', color: 'border-blue-500' },
           { label: '계약 중', value: stats.occupied + '개', color: 'border-green-500' },
@@ -71,7 +71,7 @@ export default function Dashboard() {
         {expiring.length === 0 ? (
           <p className="text-sm text-gray-400">만료 임박 계약 없음</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[480px]">
             <thead><tr className="text-gray-400 border-b"><th className="text-left py-1">임차인</th><th className="text-left">매물</th><th className="text-left">만료일</th><th className="text-left">D-day</th></tr></thead>
             <tbody>
               {expiring.map(c => (
@@ -83,7 +83,7 @@ export default function Dashboard() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
 
@@ -93,7 +93,7 @@ export default function Dashboard() {
         {overdue.length === 0 ? (
           <p className="text-sm text-gray-400">미납 없음</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[360px]">
             <thead><tr className="text-gray-400 border-b"><th className="text-left py-1">임차인</th><th className="text-left">금액</th><th className="text-left">납부기한</th></tr></thead>
             <tbody>
               {overdue.map(p => (
@@ -104,7 +104,7 @@ export default function Dashboard() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
     </div>

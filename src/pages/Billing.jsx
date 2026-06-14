@@ -100,7 +100,7 @@ export default function Billing() {
 
       {tab === 'fees' && (
         <div className="bg-white rounded-xl shadow-sm p-5 max-w-2xl">
-          <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             <Field label="매물">
               <select value={fees.property_id} onChange={e => setFees({ ...fees, property_id: e.target.value })} className={inputCls}>
                 <option value="">선택</option>
@@ -127,7 +127,7 @@ export default function Billing() {
       {tab === 'water' && (
         <div className="space-y-5">
           <div className="bg-white rounded-xl shadow-sm p-5 max-w-3xl">
-            <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
               <Field label="전체 고지 금액(원)"><input type="number" value={waterTotal} onChange={e => setWaterTotal(e.target.value)} className={inputCls} /></Field>
               <Field label="전체 사용량(㎥)"><input type="number" value={usageTotal} onChange={e => setUsageTotal(e.target.value)} className={inputCls} /></Field>
               <Field label="배분 방식">
@@ -138,7 +138,7 @@ export default function Billing() {
               </Field>
             </div>
 
-            <table className="w-full text-sm mb-3">
+            <div className="overflow-x-auto mb-3"><table className="w-full text-sm min-w-[460px]">
               <thead><tr className="text-gray-400 border-b"><th className="text-left py-1">세대</th><th className="text-left">면적(㎡)</th><th className="text-left">사용량(㎥)</th><th className="text-left">전월 사용량</th><th></th></tr></thead>
               <tbody>
                 {units.map((u, i) => (
@@ -151,7 +151,7 @@ export default function Billing() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
             <div className="flex gap-2">
               <button onClick={addUnit} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">+ 세대 추가</button>
               <button onClick={calculate} className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">계산</button>
@@ -167,7 +167,7 @@ export default function Billing() {
               <div id="billing-preview" className="border border-gray-200 rounded-lg p-5 bg-white">
                 <h3 className="text-lg font-bold text-center mb-1">수도요금 정산서</h3>
                 <p className="text-center text-sm text-gray-500 mb-4">{now.getFullYear()}년 {now.getMonth() + 1}월 · 전체 {formatMoney(Number(waterTotal))}</p>
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto"><table className="w-full text-sm min-w-[420px]">
                   <thead><tr className="border-b bg-gray-50"><th className="text-left px-2 py-2">세대</th><th className="text-left">면적</th><th className="text-left">사용량</th><th className="text-left">청구액</th><th className="text-left">비고</th></tr></thead>
                   <tbody>
                     {result.map(r => (
@@ -183,7 +183,7 @@ export default function Billing() {
                   <tfoot>
                     <tr className="font-semibold border-t-2"><td className="px-2 py-2">합계</td><td></td><td></td><td>{formatMoney(result.reduce((s, r) => s + r.billedAmount, 0))}</td><td></td></tr>
                   </tfoot>
-                </table>
+                </table></div>
               </div>
             </div>
           )}
