@@ -1,4 +1,6 @@
 import { NavLink } from "react-router-dom"
+import toast from "react-hot-toast"
+import { useAuth, signOut } from "../../lib/AuthContext"
 
 const menu = [
   { to: "/dashboard", label: "대시보드" },
@@ -13,6 +15,11 @@ const menu = [
 ]
 
 export default function Sidebar({ open = false, onClose = () => {} }) {
+  const { user } = useAuth()
+  async function handleLogout() {
+    await signOut()
+    toast.success("로그아웃되었습니다.")
+  }
   return (
     <>
       {/* 모바일 오버레이 */}
@@ -66,6 +73,19 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
             </NavLink>
           ))}
         </nav>
+
+        <div className="border-t border-gray-100 p-3">
+          {user?.email && (
+            <p className="px-2 pb-2 text-xs text-gray-400 truncate" title={user.email}>{user.email}</p>
+          )}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded text-sm text-gray-600 hover:bg-gray-50"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></svg>
+            로그아웃
+          </button>
+        </div>
       </aside>
     </>
   )
