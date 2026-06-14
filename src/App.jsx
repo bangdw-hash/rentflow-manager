@@ -57,11 +57,11 @@ function Shell() {
 }
 
 function Gate() {
-  const { session, loading } = useAuth()
+  const { session, loading, guest } = useAuth()
   if (loading) {
     return <div className="min-h-screen grid place-items-center text-gray-400 text-sm">불러오는 중…</div>
   }
-  return session ? <Shell /> : <Login />
+  return session || guest ? <Shell /> : <Login />
 }
 
 export default function App() {
