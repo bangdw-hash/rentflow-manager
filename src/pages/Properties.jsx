@@ -4,7 +4,9 @@ import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { formatMoney } from '../utils/formatters'
 import { downloadXlsxTemplate, parseSheet, cellStr, cellNum } from '../lib/bulkImport'
+import { usePlan } from '../lib/PlanContext'
 import Modal from '../components/common/Modal'
+import UpgradeModal from '../components/common/UpgradeModal'
 import { PageHeader, Card, Button, Field, EmptyState, Pill, IconBtn, EditIcon, TrashIcon, inputClass } from '../components/common/ui'
 
 const STATUS_MAP = {
@@ -25,8 +27,12 @@ export default function Properties() {
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [upgrade, setUpgrade] = useState(false)
   const fileRef = useRef(null)
+  const { limits } = usePlan()
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm()
+
+  const atLimit = limits.properties !== Infinity && list.length >= limits.properties
 
   useEffect(() => { fetchList() }, [])
 
@@ -39,6 +45,7 @@ export default function Properties() {
   }
 
   function openCreate() {
+    if (atLimit) { setUpgrade(true); return }
     setEditing(null)
     reset({ name: '', address: '', floor: '', area_sqm: '', property_type: 'apartment', status: 'vacant', monthly_rent: '', deposit: '', note: '' })
     setOpen(true)
@@ -126,6 +133,15 @@ export default function Properties() {
         })
       }
       if (!toInsert.length) { toast.error(`등록할 신규 매물이 없습니다 (중복/누락 ${skipped}건).`, { id: t }); return }
+      // 플랜 한도 적용 (Free)
+      if (limits.properties !== Infinity) {
+        const remaining = Math.max(0, limits.properties - (existing?.length || 0))
+        if (remaining <= 0) { toast.dismiss(t); setUpgrade(true); return }
+        if (toInsert.length > remaining) {
+          toast(`Free 플랜 한도로 ${remaining}건만 등록합니다.`, { id: t, icon: 'ℹ️' })
+          toInsert.length = remaining
+        }
+      }
       const { error } = await supabase.from('properties').insert(toInsert)
       if (error) throw error
       toast.success(`${toInsert.length}건 등록 완료${skipped ? `, ${skipped}건 건너뜀` : ''}.`, { id: t })
@@ -141,7 +157,7 @@ export default function Properties() {
     <div>
       <PageHeader
         title="매물 관리"
-        subtitle="개별 등록 또는 엑셀로 일괄 업로드할 수 있습니다."
+        subtitle={limits.properties === Infinity ? '개별 등록 또는 엑셀로 일괄 업로드할 수 있습니다.' : `Free 플랜 · ${list.length}/${limits.properties}개 사용 중`}
         action={
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" size="sm" onClick={downloadTemplate}>양식 다운로드</Button>
@@ -151,6 +167,8 @@ export default function Properties() {
           </div>
         }
       />
+
+      <UpgradeModal open={upgrade} onClose={() => setUpgrade(false)} feature="매물" limit={limits.properties} />
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
