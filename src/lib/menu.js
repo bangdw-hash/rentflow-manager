@@ -10,6 +10,7 @@ export const MENU = [
   { to: "/billing", label: "관리비" },
   { to: "/notifications", label: "알림" },
   { to: "/reports", label: "보고서" },
+  { to: "/settings", label: "설정" },
 ]
 
 // 모바일 하단 탭바 주요 4개 + 더보기
