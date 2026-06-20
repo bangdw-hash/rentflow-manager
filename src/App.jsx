@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
 import { AuthProvider, useAuth } from "./lib/AuthContext"
 import { PlanProvider } from "./lib/PlanContext"
+import { SettingsProvider } from "./lib/SettingsContext"
 import Sidebar from "./components/common/Sidebar"
 import BottomNav from "./components/common/BottomNav"
 import Login from "./pages/Login"
@@ -15,6 +16,7 @@ import Reports from "./pages/Reports"
 import Insights from "./pages/Insights"
 import Payments from "./pages/Payments"
 import Invoices from "./pages/Invoices"
+import Settings from "./pages/Settings"
 
 function Shell() {
   return (
@@ -46,6 +48,7 @@ function Shell() {
           <Route path="/billing" element={<Billing />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>
     </div>
@@ -65,7 +68,9 @@ export default function App() {
     <BrowserRouter basename="/rentflow-manager">
       <AuthProvider>
         <PlanProvider>
-          <Gate />
+          <SettingsProvider>
+            <Gate />
+          </SettingsProvider>
         </PlanProvider>
       </AuthProvider>
       <Toaster position="top-right" />

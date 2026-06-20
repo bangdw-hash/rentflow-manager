@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { scanContract } from '../lib/ocr'
+import { useSettings } from '../lib/SettingsContext'
 import { formatMoney, formatDate } from '../utils/formatters'
 import Modal from '../components/common/Modal'
 import { PageHeader, Card, Button, Field, EmptyState, Pill, IconBtn, EditIcon, TrashIcon, inputClass } from '../components/common/ui'
@@ -22,6 +23,7 @@ export default function Contracts() {
   const [editing, setEditing] = useState(null)
   const [file, setFile] = useState(null)
   const [scanning, setScanning] = useState(false)
+  const { settings } = useSettings()
   const { register, handleSubmit, reset, setValue, formState: { isSubmitting } } = useForm()
 
   async function handleOcr(e) {
@@ -29,7 +31,7 @@ export default function Contracts() {
     if (!f) return
     setScanning(true)
     try {
-      const parsed = await scanContract(f)
+      const parsed = await scanContract(f, { url: settings.clova_ocr_url, secret: settings.clova_ocr_secret })
       let n = 0
       if (parsed.deposit) { setValue('deposit', parsed.deposit); n++ }
       if (parsed.monthly_rent) { setValue('monthly_rent', parsed.monthly_rent); n++ }

@@ -6,6 +6,7 @@ import { scanContract } from '../lib/ocr'
 import { formatDate } from '../utils/formatters'
 import { downloadXlsxTemplate, parseSheet, cellStr } from '../lib/bulkImport'
 import { usePlan } from '../lib/PlanContext'
+import { useSettings } from '../lib/SettingsContext'
 import Modal from '../components/common/Modal'
 import UpgradeModal from '../components/common/UpgradeModal'
 import { PageHeader, Card, Button, Field, EmptyState, IconBtn, EditIcon, TrashIcon, inputClass } from '../components/common/ui'
@@ -24,6 +25,7 @@ export default function Tenants() {
   const [upgrade, setUpgrade] = useState(false)
   const fileRef = useRef(null)
   const { limits } = usePlan()
+  const { settings } = useSettings()
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm()
 
   const atLimit = limits.tenants !== Infinity && list.length >= limits.tenants
@@ -62,7 +64,7 @@ export default function Tenants() {
       const path = `contracts/${Date.now()}_${file.name}`
       const { error: upErr } = await supabase.storage.from('contracts').upload(path, file)
       if (upErr) console.warn('파일 업로드 경고:', upErr.message)
-      const parsed = await scanContract(file)
+      const parsed = await scanContract(file, { url: settings.clova_ocr_url, secret: settings.clova_ocr_secret })
       setOcrResult(parsed)
       toast.success('계약서 OCR 분석 완료')
     } catch (err) {

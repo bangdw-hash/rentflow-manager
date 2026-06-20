@@ -1,12 +1,12 @@
-const CLOVA_OCR_URL = import.meta.env.VITE_CLOVA_OCR_URL
-const CLOVA_OCR_SECRET = import.meta.env.VITE_CLOVA_OCR_SECRET
-
 const FORMAT_MAP = { jpg: 'jpg', jpeg: 'jpg', png: 'png', pdf: 'pdf', tif: 'tiff', tiff: 'tiff' }
 
-export async function scanContract(file) {
-  // 환경변수 미설정 시 명확히 안내 (빈 URL로 요청해 HTML이 돌아오는 문제 방지)
-  if (!CLOVA_OCR_URL || !CLOVA_OCR_SECRET) {
-    throw new Error('OCR이 아직 설정되지 않았습니다. GitHub Secrets에 VITE_CLOVA_OCR_URL / VITE_CLOVA_OCR_SECRET 등록 후 재배포가 필요합니다.')
+// config.url / config.secret 를 우선 사용하고, 없으면 빌드 환경변수로 폴백
+export async function scanContract(file, config = {}) {
+  const url = config.url || import.meta.env.VITE_CLOVA_OCR_URL
+  const secret = config.secret || import.meta.env.VITE_CLOVA_OCR_SECRET
+
+  if (!url || !secret) {
+    throw new Error('OCR이 아직 설정되지 않았습니다. [설정] 메뉴에서 Clova OCR URL/Secret을 등록하세요.')
   }
 
   const base64 = await fileToBase64(file)
@@ -15,9 +15,9 @@ export async function scanContract(file) {
 
   let response
   try {
-    response = await fetch(CLOVA_OCR_URL, {
+    response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-OCR-SECRET': CLOVA_OCR_SECRET },
+      headers: { 'Content-Type': 'application/json', 'X-OCR-SECRET': secret },
       body: JSON.stringify({
         version: 'V2',
         requestId: Date.now().toString(),

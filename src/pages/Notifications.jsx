@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { sendBillingNotice, sendExpiryNotice, sendOverdueNotice } from '../lib/kakao'
 import { formatDate, getDday } from '../utils/formatters'
 import { usePlan } from '../lib/PlanContext'
+import { useSettings } from '../lib/SettingsContext'
 import Modal from '../components/common/Modal'
 import UpgradeModal from '../components/common/UpgradeModal'
 import { PageHeader, Card, Button, Field, EmptyState, Pill, inputClass } from '../components/common/ui'
@@ -28,6 +29,8 @@ export default function Notifications() {
   const [sending, setSending] = useState(false)
   const [upgrade, setUpgrade] = useState(false)
   const { limits } = usePlan()
+  const { settings } = useSettings()
+  const apiKey = settings.kakao_api_key
 
   // 이번 달 발송 건수
   const monthSent = (() => {
@@ -72,9 +75,9 @@ export default function Notifications() {
     setSending(true)
     const { name, phone, contracts } = selectedTenant
     let res
-    if (form.notif_type === 'billing') res = await sendBillingNotice({ phone, tenantName: name, month: form.month, amount: Number(form.amount), dueDate: form.dueDate })
-    else if (form.notif_type === 'expiry') { const end = contracts?.[0]?.contract_end; res = await sendExpiryNotice({ phone, tenantName: name, expiryDate: end, dday: end ? getDday(end) : 0 }) }
-    else res = await sendOverdueNotice({ phone, tenantName: name, amount: Number(form.amount), overdueDays: 0 })
+    if (form.notif_type === 'billing') res = await sendBillingNotice({ phone, tenantName: name, month: form.month, amount: Number(form.amount), dueDate: form.dueDate, apiKey })
+    else if (form.notif_type === 'expiry') { const end = contracts?.[0]?.contract_end; res = await sendExpiryNotice({ phone, tenantName: name, expiryDate: end, dday: end ? getDday(end) : 0, apiKey }) }
+    else res = await sendOverdueNotice({ phone, tenantName: name, amount: Number(form.amount), overdueDays: 0, apiKey })
 
     await supabase.from('notifications').insert({
       tenant_id: form.tenant_id, notif_type: form.notif_type, channel: 'kakao',
