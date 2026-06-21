@@ -1,13 +1,21 @@
 @import "tailwindcss";
 
+/* 사용자 지정 기본 서체 (앱 번들에 내장) */
+@font-face {
+  font-family: "RFBrand";
+  src: url("./assets/fonts/brand.ttf") format("truetype");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 /* =========================================================
    rentflow 디자인 시스템 (V2)
-   - 서체: Pretendard (한국형 모던 UI 표준)
+   - 기본 서체: 사용자 지정(RFBrand) → Pretendard 폴백
    - 자간/타이포 스케일/뉴트럴 팔레트 정돈
    ========================================================= */
 
 @theme {
-  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+  --font-sans: "RFBrand", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
     system-ui, "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif;
 
   /* 브랜드 컬러 (인디고-블루 계열) */
