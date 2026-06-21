@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useSettings } from '../lib/SettingsContext'
 import { usePlan } from '../lib/PlanContext'
+import { FONT_OPTIONS, applyFont, loadFontPref, saveFontPref } from '../lib/applyFont'
 import { PageHeader, Card, Button, Field, Pill, inputClass } from '../components/common/ui'
 
 export default function Settings() {
@@ -12,6 +13,34 @@ export default function Settings() {
   const { plan } = usePlan()
   const [form, setForm] = useState({ clova_ocr_url: '', clova_ocr_secret: '', kakao_api_key: '' })
   const [saving, setSaving] = useState(false)
+  const [fontPref, setFontPref] = useState(() => loadFontPref() || { id: 'pretendard' })
+
+  function chooseFont(id) {
+    const pref = { id }
+    setFontPref(pref)
+    applyFont(pref)
+    saveFontPref(pref)
+    toast.success('서체를 적용했습니다.')
+  }
+
+  function handleFontUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 3 * 1024 * 1024) {
+      toast('3MB 이하 폰트를 권장합니다(큰 폰트는 저장이 안 될 수 있어요).', { icon: 'ℹ️' })
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const pref = { id: 'custom', dataUrl: reader.result, name: file.name }
+      setFontPref(pref)
+      applyFont(pref)
+      const ok = saveFontPref(pref)
+      toast.success(ok ? `사용자 글꼴 "${file.name}" 적용` : `적용됨(용량이 커서 이 세션만 유지)`)
+    }
+    reader.onerror = () => toast.error('폰트 파일을 읽지 못했습니다.')
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
 
   useEffect(() => {
     setForm({
@@ -60,6 +89,38 @@ export default function Settings() {
           <Pill color={plan === 'pro' ? 'blue' : 'gray'}>{plan === 'pro' ? 'Pro' : 'Free'}</Pill>
         </div>
         <p className="text-xs text-gray-400">Free: 매물 3 · 임차인 5 · 알림 월 10건 · Pro: 무제한</p>
+      </Card>
+
+      <Card className="p-5 mb-4">
+        <h2 className="font-semibold text-gray-900 mb-1">서체</h2>
+        <p className="text-xs text-gray-400 mb-4">앱 전체에 적용됩니다. (이 기기에 저장)</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+          {FONT_OPTIONS.map((o) => (
+            <button
+              key={o.id}
+              type="button"
+              onClick={() => chooseFont(o.id)}
+              className={`text-left rounded-xl px-4 py-3 ring-1 transition ${fontPref.id === o.id ? 'ring-blue-400 bg-blue-50/40' : 'ring-gray-200 hover:bg-gray-50'}`}
+            >
+              <span className="block text-xs text-gray-400 mb-1">{o.label}</span>
+              <span className="block text-base text-gray-900" style={{ fontFamily: o.stack }}>
+                임대 관리 rentflow 가나다 12,345원
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <div className="rounded-xl bg-gray-50 p-4">
+          <p className="text-sm font-medium text-gray-700 mb-1">내 폰트 업로드</p>
+          <p className="text-xs text-gray-400 mb-2">woff2 / ttf / otf — 업로드하면 HTML에 임베드되어 즉시 적용됩니다.</p>
+          <input type="file" accept=".woff2,.woff,.ttf,.otf,font/*" onChange={handleFontUpload} className="text-sm" />
+          {fontPref.id === 'custom' && (
+            <p className="text-xs text-blue-600 mt-2" style={{ fontFamily: "'RFUserFont', sans-serif" }}>
+              현재 적용: {fontPref.name || '사용자 글꼴'} — 임대 관리 rentflow 가나다
+            </p>
+          )}
+        </div>
       </Card>
 
       <form onSubmit={save}>
